@@ -1,0 +1,63 @@
+name: SH-03M TWRP Build Recovery
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - name: 📁 クラウド環境のストレージ容量を最適化
+      uses: easimon/maximize-build-space@master
+      with:
+        root-reserve-mb: 10244
+        swap-size-mb: 1024
+        remove-dotnet: 'true'
+        remove-android: 'true'
+        remove-haskell: 'true'
+
+    - name: 📥 今回作ったデバイスツリーをチェックアウト
+      uses: actions/checkout@v3
+      with:
+        path: device/sharp/oe6
+
+    - name: 🛠️ ビルドに必要なツール群をインストール
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev python2 python3
+
+    - name: 🔑 Gitの初期設定とrepoツールの導入
+      run: |
+        git config --global user.name "yy5984265-afk"
+        git config --global user.email "yy5984265-afk@example.com"
+        mkdir -p ~/bin
+        curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+        chmod a+x ~/bin/repo
+        sudo ln -sf ~/bin/repo /usr/bin/repo
+
+    - name: 🌐 TWRP（Minimal Manifest）のソースコードを同期
+      run: |
+        mkdir twrp
+        cd twrp
+        repo init --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-9.0
+        repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags
+
+    - name: ⚙️ 今回のデバイスツリーをビルド環境に配置
+      run: |
+        mkdir -p twrp/device/sharp/oe6
+        cp -r device/sharp/oe6/* twrp/device/sharp/oe6/
+
+    - name: 🚀 TWRPリカバリイメージのビルド開始
+      run: |
+        cd twrp
+        export ALLOW_MISSING_DEPENDENCIES=true
+        source build/envsetup.sh
+        lunch omni_oe6-eng
+        make -j$(nproc) recoveryimage
+
+    - name: 📤 完成したTWRP（recovery.img）をGitHubにアップロード
+      uses: actions/upload-artifact@v3
+      with:
+        name: TWRP-SH03M-Recovery
+        path: twrp/out/target/product/oe6/recovery.img
