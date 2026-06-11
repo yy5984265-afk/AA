@@ -18,7 +18,7 @@ jobs:
         remove-haskell: 'true'
 
     - name: 📥 今回作ったデバイスツリーをチェックアウト
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         path: device/sharp/oe6
 
@@ -57,7 +57,7 @@ jobs:
         make -j$(nproc) recoveryimage
 
     - name: 📤 完成したTWRP（recovery.img）をGitHubにアップロード
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: TWRP-SH03M-Recovery
         path: twrp/out/target/product/oe6/recovery.img
