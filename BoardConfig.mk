@@ -31,3 +31,13 @@ TARGET_USES_LOGD := true
 BOARD_BOOTIMAGE_PARTITION_SIZE := 25165824       # 24MB
 BOARD_RECOVERYIMAGE_PARTITION_SIZE := 67108864   # 64MB
 BOARD_FLASH_BLOCK_SIZE := 131072
+# -------------------------------------------------------------
+# 🔴 カスタムROM（LineageOS）用の追加設定
+# -------------------------------------------------------------
+# TWRP専用のフラグがもし上にあれば、カスタムROMビルド時は無効化されるように調整
+#（もし上に「TARGET_RECOVERY_DEVICE_MODULES」とかがあれば、ROM用に標準のシステムを組む設定にする）
+
+# 後からWi-Fiを入れる時にエラーにならないよう、Wi-Fiのドライバー設定枠を予約
+BOARD_WLAN_DEVICE := qcwcn
+WPA_SUPPLICANT_VERSION := VER_0_8_X
+BOARD_WPA_SUPPLICANT_DRIVER := NL80211
